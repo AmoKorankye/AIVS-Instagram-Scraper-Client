@@ -3,8 +3,6 @@
 import { useState } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { MoreHorizontal } from "lucide-react"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Skeleton } from "@/components/ui/skeleton"
 
 interface Account {
@@ -47,9 +45,6 @@ export function PaymentsTable({ accounts = [], totalFiltered = 0, isLoading = fa
       <div className="flex-1">
         <Skeleton className="h-4 w-20" />
       </div>
-      <div className="w-10">
-        <Skeleton className="h-8 w-8 rounded" />
-      </div>
     </div>
   )
 
@@ -82,7 +77,6 @@ export function PaymentsTable({ accounts = [], totalFiltered = 0, isLoading = fa
                 <div className="flex-1 font-medium">ID</div>
                 <div className="flex-1 font-medium">Full Name</div>
                 <div className="flex-1 font-medium">Username</div>
-                <div className="w-10"></div>
               </div>
             </div>
 
@@ -95,20 +89,6 @@ export function PaymentsTable({ accounts = [], totalFiltered = 0, isLoading = fa
                       <div className="flex-1 text-sm font-medium">{account.id}</div>
                       <div className="flex-1 text-sm">{account.fullName}</div>
                       <div className="flex-1 text-sm">@{account.username}</div>
-                      <div className="w-10">
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon">
-                              <MoreHorizontal className="h-4 w-4" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuItem>View details</DropdownMenuItem>
-                            <DropdownMenuItem>Edit account</DropdownMenuItem>
-                            <DropdownMenuItem className="text-destructive">Remove account</DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </div>
                     </div>
                   ))}
             </div>
