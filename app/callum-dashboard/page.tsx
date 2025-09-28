@@ -15,7 +15,7 @@ interface ScrapedAccount {
 }
 
 export default function DashboardPage() {
-  const { isAuthenticated, isLoading } = useAuth()
+  const { isAuthenticated, isLoading, logout } = useAuth()
   const router = useRouter()
   const [scrapedAccounts, setScrapedAccounts] = useState<ScrapedAccount[]>([])
   const [totalFiltered, setTotalFiltered] = useState(0)
@@ -40,6 +40,7 @@ export default function DashboardPage() {
   }
 
   const handleLogout = () => {
+    logout() // Clear authentication state
     router.push("/callum")
   }
 
