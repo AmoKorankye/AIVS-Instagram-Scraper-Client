@@ -2,8 +2,10 @@
 
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
+import Image from "next/image"
 import { DependenciesCard } from "@/components/dependencies-card"
 import { PaymentsTable } from "@/components/payments-table"
+import { Button } from "@/components/ui/button"
 import { useAuth } from "@/contexts/auth-context"
 
 interface ScrapedAccount {
@@ -37,6 +39,10 @@ export default function DashboardPage() {
     setTotalFiltered(0)
   }
 
+  const handleLogout = () => {
+    router.push("/callum")
+  }
+
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
       router.push("/callum")
@@ -63,6 +69,23 @@ export default function DashboardPage() {
   return (
     <div className="min-h-screen bg-background p-6">
       <div className="max-w-7xl mx-auto">
+        {/* Header with logo and logout */}
+        <div className="flex items-center justify-between mb-8">
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 rounded-full overflow-hidden bg-gray-100">
+              <Image 
+                src="/aivs logo.JPG" 
+                alt="AIVS Logo" 
+                width={48} 
+                height={48}
+                className="w-full h-full object-cover"
+              />
+            </div>
+          </div>
+          <Button variant="outline" onClick={handleLogout}>
+            Logout
+          </Button>
+        </div>
         
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <DependenciesCard 
