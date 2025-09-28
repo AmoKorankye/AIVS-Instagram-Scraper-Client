@@ -6,6 +6,15 @@ import Image from "next/image"
 import { DependenciesCard } from "@/components/dependencies-card"
 import { PaymentsTable } from "@/components/payments-table"
 import { Button } from "@/components/ui/button"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog"
 import { useAuth } from "@/contexts/auth-context"
 
 interface ScrapedAccount {
@@ -20,6 +29,7 @@ export default function DashboardPage() {
   const [scrapedAccounts, setScrapedAccounts] = useState<ScrapedAccount[]>([])
   const [totalFiltered, setTotalFiltered] = useState(0)
   const [isScrapingLoading, setIsScrapingLoading] = useState(false)
+  const [showLogoutDialog, setShowLogoutDialog] = useState(false)
 
   const handleScrapingStart = () => {
     setIsScrapingLoading(true)
@@ -40,8 +50,13 @@ export default function DashboardPage() {
   }
 
   const handleLogout = () => {
+    setShowLogoutDialog(true)
+  }
+
+  const confirmLogout = () => {
     logout() // Clear authentication state
     router.push("/callum")
+    setShowLogoutDialog(false)
   }
 
   useEffect(() => {
@@ -83,9 +98,32 @@ export default function DashboardPage() {
               />
             </div>
           </div>
-          <Button variant="outline" onClick={handleLogout}>
-            Logout
-          </Button>
+          <Dialog open={showLogoutDialog} onOpenChange={setShowLogoutDialog}>
+            <DialogTrigger asChild>
+              <Button variant="outline" onClick={handleLogout}>
+                Logout
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Confirm Logout</DialogTitle>
+                <DialogDescription>
+                  Are you sure you want to logout? You will be redirected to the login page.
+                </DialogDescription>
+              </DialogHeader>
+              <DialogFooter>
+                <Button
+                  variant="outline"
+                  onClick={() => setShowLogoutDialog(false)}
+                >
+                  Cancel
+                </Button>
+                <Button onClick={confirmLogout}>
+                  Yes, Logout
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
         </div>
         
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
