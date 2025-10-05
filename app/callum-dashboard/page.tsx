@@ -5,8 +5,10 @@ import { useRouter } from "next/navigation"
 import Image from "next/image"
 import { DependenciesCard } from "@/components/dependencies-card"
 import { PaymentsTable } from "@/components/payments-table"
+import { CampaignsTable } from "@/components/campaigns-table"
 import { UsernameStatusCard } from "@/components/username-status-card"
 import { Button } from "@/components/ui/button"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import {
   Dialog,
   DialogContent,
@@ -138,11 +140,24 @@ export default function DashboardPage() {
             onScrapingComplete={handleScrapingComplete}
             onError={handleScrapingError}
           />
-          <PaymentsTable 
-            accounts={scrapedAccounts}
-            totalFiltered={totalFiltered}
-            isLoading={isScrapingLoading}
-          />
+          
+          {/* Tabs for Scraped Accounts and Campaigns */}
+          <Tabs defaultValue="payments" className="w-full">
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="payments">Scraped Accounts</TabsTrigger>
+              <TabsTrigger value="campaigns">Campaigns</TabsTrigger>
+            </TabsList>
+            <TabsContent value="payments">
+              <PaymentsTable 
+                accounts={scrapedAccounts}
+                totalFiltered={totalFiltered}
+                isLoading={isScrapingLoading}
+              />
+            </TabsContent>
+            <TabsContent value="campaigns">
+              <CampaignsTable />
+            </TabsContent>
+          </Tabs>
         </div>
       </div>
     </div>
