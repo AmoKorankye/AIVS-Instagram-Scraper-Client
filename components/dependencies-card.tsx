@@ -7,12 +7,25 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
-import { Plus, X } from "lucide-react"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import { Plus, X, MoreVertical } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
+import { supabase } from "@/lib/supabase"
 
 interface InstagramAccount {
   id: number
   username: string
+}
+
+interface SourceProfile {
+  id: string
+  username: string
+  full_name: string | null
 }
 
 interface ScrapedAccount {
@@ -46,6 +59,7 @@ export function DependenciesCard({ onScrapingComplete, onScrapingStart, onError 
   const [inputValue, setInputValue] = useState("")
   const [accounts, setAccounts] = useState<InstagramAccount[]>([])
   const [isScrapingLoading, setIsScrapingLoading] = useState(false)
+  const [isLoadingProfiles, setIsLoadingProfiles] = useState(false)
   const { toast } = useToast()
 
   const extractUsername = (input: string): string | null => {
@@ -136,6 +150,63 @@ export function DependenciesCard({ onScrapingComplete, onScrapingStart, onError 
     return username.slice(0, 2).toUpperCase()
   }
 
+  const loadSourceProfiles = async () => {
+    setIsLoadingProfiles(true)
+    
+    try {
+      const { data, error } = await supabase
+        .from('source_profiles')
+        .select('id, username, full_name')
+        .order('created_at', { ascending: false })
+      
+      if (error) {
+        throw error
+      }
+      
+      if (data && data.length > 0) {
+        // Convert Supabase profiles to local account format
+        const loadedAccounts: InstagramAccount[] = data.map((profile: SourceProfile) => ({
+          id: Date.now() + Math.random(), // Generate unique ID for local state
+          username: profile.username || '',
+        }))
+        
+        // Merge with existing accounts, avoiding duplicates
+        setAccounts((prev) => {
+          const existingUsernames = new Set(prev.map(acc => acc.username))
+          const newAccounts = loadedAccounts.filter(acc => !existingUsernames.has(acc.username))
+          return [...prev, ...newAccounts]
+        })
+        
+        toast({
+          title: "Profiles loaded",
+          description: `Loaded ${data.length} source profiles from database.`,
+        })
+      } else {
+        toast({
+          title: "No profiles found",
+          description: "No source profiles found in the database.",
+        })
+      }
+    } catch (error) {
+      console.error('Error loading profiles:', error)
+      toast({
+        title: "Failed to load profiles",
+        description: "Could not load profiles from database. Please try again.",
+        variant: "destructive",
+      })
+    } finally {
+      setIsLoadingProfiles(false)
+    }
+  }
+
+  const handleEditSourceProfiles = () => {
+    // Placeholder for edit functionality
+    toast({
+      title: "Edit source profiles",
+      description: "Edit functionality coming soon!",
+    })
+  }
+
   const handleFindAccounts = async () => {
     if (accounts.length === 0) {
       toast({
@@ -196,10 +267,35 @@ export function DependenciesCard({ onScrapingComplete, onScrapingStart, onError 
   return (
     <Card className="h-fit">
       <CardHeader>
-        <CardTitle>Find Instagram Accounts</CardTitle>
-        <p className="text-sm text-muted-foreground">
-          Type in the search bar to add either usernames or links to instagram profiles
-        </p>
+        <div className="flex items-start justify-between">
+          <div className="flex-1">
+            <CardTitle>Find Instagram Accounts</CardTitle>
+            <p className="text-sm text-muted-foreground mt-1.5">
+              Type in the search bar to add either usernames or links to instagram profiles
+            </p>
+          </div>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8"
+                disabled={isLoadingProfiles}
+              >
+                <MoreVertical className="h-4 w-4" />
+                <span className="sr-only">Open menu</span>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={loadSourceProfiles} disabled={isLoadingProfiles}>
+                {isLoadingProfiles ? 'Loading...' : 'Load source profiles'}
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={handleEditSourceProfiles}>
+                Edit source profiles
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
       </CardHeader>
       <CardContent className="space-y-6">
         <div className="flex gap-2">
