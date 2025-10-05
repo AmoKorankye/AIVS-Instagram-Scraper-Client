@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation"
 import Image from "next/image"
 import { DependenciesCard } from "@/components/dependencies-card"
 import { PaymentsTable } from "@/components/payments-table"
+import { UsernameStatusCard } from "@/components/username-status-card"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -124,6 +125,11 @@ export default function DashboardPage() {
               </DialogFooter>
             </DialogContent>
           </Dialog>
+        </div>
+        
+        {/* Username Status Card */}
+        <div className="mb-6">
+          <UsernameStatusCard />
         </div>
         
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
