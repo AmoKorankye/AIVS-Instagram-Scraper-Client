@@ -16,6 +16,7 @@ import {
 import { Plus, X, MoreVertical } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import { supabase } from "@/lib/supabase"
+import { EditSourceProfilesDialog } from "@/components/edit-source-profiles-dialog"
 
 interface InstagramAccount {
   id: number
@@ -25,7 +26,6 @@ interface InstagramAccount {
 interface SourceProfile {
   id: string
   username: string
-  full_name: string | null
 }
 
 interface ScrapedAccount {
@@ -60,6 +60,7 @@ export function DependenciesCard({ onScrapingComplete, onScrapingStart, onError 
   const [accounts, setAccounts] = useState<InstagramAccount[]>([])
   const [isScrapingLoading, setIsScrapingLoading] = useState(false)
   const [isLoadingProfiles, setIsLoadingProfiles] = useState(false)
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
   const { toast } = useToast()
 
   const extractUsername = (input: string): string | null => {
@@ -156,8 +157,8 @@ export function DependenciesCard({ onScrapingComplete, onScrapingStart, onError 
     try {
       const { data, error } = await supabase
         .from('source_profiles')
-        .select('id, username, full_name')
-        .order('created_at', { ascending: false })
+        .select('id, username')
+        .order('username', { ascending: true })
       
       if (error) {
         throw error
@@ -200,11 +201,7 @@ export function DependenciesCard({ onScrapingComplete, onScrapingStart, onError 
   }
 
   const handleEditSourceProfiles = () => {
-    // Placeholder for edit functionality
-    toast({
-      title: "Edit source profiles",
-      description: "Edit functionality coming soon!",
-    })
+    setIsEditDialogOpen(true)
   }
 
   const handleFindAccounts = async () => {
@@ -223,7 +220,8 @@ export function DependenciesCard({ onScrapingComplete, onScrapingStart, onError 
     try {
       const usernames = accounts.map(account => account.username)
       
-      const response = await fetch('http://localhost:5001/api/scrape-followers', {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001'
+      const response = await fetch(`${apiUrl}/api/scrape-followers`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -345,6 +343,13 @@ export function DependenciesCard({ onScrapingComplete, onScrapingStart, onError 
           {isScrapingLoading ? "Scraping Followers..." : "Find Accounts"}
         </Button>
       </CardContent>
+
+      {/* Edit Source Profiles Dialog */}
+      <EditSourceProfilesDialog
+        open={isEditDialogOpen}
+        onOpenChange={setIsEditDialogOpen}
+        onProfilesUpdated={loadSourceProfiles}
+      />
     </Card>
   )
 }

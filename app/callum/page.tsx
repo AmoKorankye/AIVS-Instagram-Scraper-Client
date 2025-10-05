@@ -47,8 +47,12 @@ export default function LoginPage() {
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault()
 
-    // Check hardcoded credentials
-    if (username === "kwaku" && password === "korankye" && otp === "123456") {
+    // Check credentials from environment variables
+    const validUsername = process.env.NEXT_PUBLIC_LOGIN_USERNAME
+    const validPassword = process.env.NEXT_PUBLIC_LOGIN_PASSWORD
+    const validOTP = process.env.NEXT_PUBLIC_LOGIN_OTP
+
+    if (username === validUsername && password === validPassword && otp === validOTP) {
       login() // Set authentication state
       router.push("/callum-dashboard")
     } else {
