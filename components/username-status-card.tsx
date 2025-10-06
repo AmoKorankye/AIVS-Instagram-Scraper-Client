@@ -2,8 +2,9 @@
 
 import { useState, useEffect } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
 import { supabase } from "@/lib/supabase"
-import { AlertCircle, CheckCircle2 } from "lucide-react"
+import { AlertCircle, CheckCircle2, RefreshCw } from "lucide-react"
 import { Skeleton } from "@/components/ui/skeleton"
 
 export function UsernameStatusCard() {
@@ -47,9 +48,20 @@ export function UsernameStatusCard() {
   return (
     <Card className="w-full">
       <CardHeader className="pb-3">
-        <CardTitle className="text-sm font-medium text-muted-foreground">
-          Username Status
-        </CardTitle>
+        <div className="flex items-center justify-between">
+          <CardTitle className="text-sm font-medium text-muted-foreground">
+            Username Status
+          </CardTitle>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={fetchUnusedCount}
+            disabled={isLoading}
+            className="h-8 w-8"
+          >
+            <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
+          </Button>
+        </div>
       </CardHeader>
       <CardContent className="space-y-3">
         {isLoading ? (
