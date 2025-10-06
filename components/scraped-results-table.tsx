@@ -13,7 +13,7 @@ interface Account {
   username: string
 }
 
-export function PaymentsTable({ 
+export function ScrapedResultsTable({ 
   accounts = [], 
   totalFiltered = 0, 
   isLoading = false,

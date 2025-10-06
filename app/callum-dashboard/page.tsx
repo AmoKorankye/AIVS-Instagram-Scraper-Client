@@ -3,8 +3,8 @@
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import Image from "next/image"
-import { DependenciesCard } from "@/components/dependencies-card"
-import { PaymentsTable } from "@/components/payments-table"
+import { ScrapingInitCard } from "@/components/scraping-init-card"
+import { ScrapedResultsTable } from "@/components/scraped-results-table"
 import { CampaignsTable } from "@/components/campaigns-table"
 import { UsernameStatusCard } from "@/components/username-status-card"
 import { Button } from "@/components/ui/button"
@@ -33,6 +33,7 @@ export default function DashboardPage() {
   const [totalFiltered, setTotalFiltered] = useState(0)
   const [isScrapingLoading, setIsScrapingLoading] = useState(false)
   const [showLogoutDialog, setShowLogoutDialog] = useState(false)
+  const [refreshKey, setRefreshKey] = useState(0)
 
   const handleScrapingStart = () => {
     setIsScrapingLoading(true)
@@ -50,6 +51,11 @@ export default function DashboardPage() {
     setIsScrapingLoading(false)
     setScrapedAccounts([])
     setTotalFiltered(0)
+  }
+
+  const handleCampaignComplete = () => {
+    // Trigger refresh of campaigns table and username status card
+    setRefreshKey(prev => prev + 1)
   }
 
   const handleLogout = () => {
@@ -131,11 +137,11 @@ export default function DashboardPage() {
         
         {/* Username Status Card */}
         <div className="mb-6">
-          <UsernameStatusCard />
+          <UsernameStatusCard key={`username-status-${refreshKey}`} />
         </div>
         
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <DependenciesCard 
+          <ScrapingInitCard 
             onScrapingStart={handleScrapingStart}
             onScrapingComplete={handleScrapingComplete}
             onError={handleScrapingError}
@@ -148,14 +154,15 @@ export default function DashboardPage() {
               <TabsTrigger value="campaigns">Campaigns</TabsTrigger>
             </TabsList>
             <TabsContent value="payments">
-              <PaymentsTable 
+              <ScrapedResultsTable 
                 accounts={scrapedAccounts}
                 totalFiltered={totalFiltered}
                 isLoading={isScrapingLoading}
+                onCampaignComplete={handleCampaignComplete}
               />
             </TabsContent>
             <TabsContent value="campaigns">
-              <CampaignsTable />
+              <CampaignsTable key={`campaigns-${refreshKey}`} />
             </TabsContent>
           </Tabs>
         </div>

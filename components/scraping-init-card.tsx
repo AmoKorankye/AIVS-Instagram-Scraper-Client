@@ -50,13 +50,13 @@ interface ApiResponse {
   error?: string
 }
 
-interface DependenciesCardProps {
+interface ScrapingInitCardProps {
   onScrapingComplete?: (accounts: ScrapedAccount[], totalFiltered: number) => void
   onScrapingStart?: () => void
   onError?: (error: string) => void
 }
 
-export function DependenciesCard({ onScrapingComplete, onScrapingStart, onError }: DependenciesCardProps) {
+export function ScrapingInitCard({ onScrapingComplete, onScrapingStart, onError }: ScrapingInitCardProps) {
   const [inputValue, setInputValue] = useState("")
   const [accounts, setAccounts] = useState<InstagramAccount[]>([])
   const [isScrapingLoading, setIsScrapingLoading] = useState(false)
