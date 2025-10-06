@@ -179,7 +179,7 @@ export function EditSourceProfilesDialog({
 
   const handleClearAll = async () => {
     // Simple password check - in production, use proper authentication
-    const correctPassword = process.env.NEXT_PUBLIC_DELETE_PASSWORD || "delete123"
+    const correctPassword = process.env.NEXT_PUBLIC_LOGIN_PASSWORD
     
     if (password !== correctPassword) {
       toast({
@@ -322,9 +322,6 @@ export function EditSourceProfilesDialog({
                     Cancel
                   </Button>
                 </div>
-                <p className="text-xs text-muted-foreground">
-                  Password hint: delete123
-                </p>
               </div>
             )}
 
