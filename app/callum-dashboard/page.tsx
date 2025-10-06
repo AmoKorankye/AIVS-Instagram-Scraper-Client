@@ -3,8 +3,8 @@
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import Image from "next/image"
-import { ScrapingInitCard } from "@/components/scraping-init-card"
-import { ScrapedResultsTable } from "@/components/scraped-results-table"
+import { DependenciesCard } from "@/components/dependencies-card"
+import { PaymentsTable } from "@/components/payments-table"
 import { CampaignsTable } from "@/components/campaigns-table"
 import { UsernameStatusCard } from "@/components/username-status-card"
 import { Button } from "@/components/ui/button"
@@ -141,7 +141,7 @@ export default function DashboardPage() {
         </div>
         
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <ScrapingInitCard 
+          <DependenciesCard 
             onScrapingStart={handleScrapingStart}
             onScrapingComplete={handleScrapingComplete}
             onError={handleScrapingError}
@@ -154,7 +154,7 @@ export default function DashboardPage() {
               <TabsTrigger value="campaigns">Campaigns</TabsTrigger>
             </TabsList>
             <TabsContent value="payments">
-              <ScrapedResultsTable 
+              <PaymentsTable 
                 accounts={scrapedAccounts}
                 totalFiltered={totalFiltered}
                 isLoading={isScrapingLoading}
