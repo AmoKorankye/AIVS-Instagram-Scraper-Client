@@ -87,11 +87,11 @@ export function UsernameStatusCard() {
             
             <div className="flex items-start gap-2">
               {isReady ? (
-                <CheckCircle2 className="h-4 w-4 text-muted-foreground mt-0.5 flex-shrink-0" />
+                <CheckCircle2 className="h-4 w-4 text-green-600 mt-0.5 flex-shrink-0" />
               ) : (
                 <AlertCircle className="h-4 w-4 text-destructive mt-0.5 flex-shrink-0" />
               )}
-              <p className={`text-sm ${isReady ? 'text-muted-foreground' : 'text-destructive'}`}>
+              <p className={`text-sm font-medium ${isReady ? 'text-green-600' : 'text-destructive'}`}>
                 {statusMessage}
               </p>
             </div>

@@ -16,17 +16,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
-    // Check if user is already logged in from localStorage
-    const authStatus = localStorage.getItem("isAuthenticated")
-    if (authStatus === "true") {
-      setIsAuthenticated(true)
-    }
+    // Always start logged out - clear any existing auth state
+    localStorage.removeItem("isAuthenticated")
     setIsLoading(false)
   }, [])
 
   const login = () => {
     setIsAuthenticated(true)
-    localStorage.setItem("isAuthenticated", "true")
+    // Session-only authentication - no localStorage persistence
   }
 
   const logout = () => {
