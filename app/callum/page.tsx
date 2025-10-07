@@ -4,6 +4,7 @@ import type React from "react"
 
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
+import Image from "next/image"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -61,9 +62,20 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background p-4">
+    <div className="min-h-screen flex flex-col items-center justify-center bg-background p-4">
       <Card className="w-full max-w-md">
-        <CardHeader className="space-y-1">
+        <CardHeader className="space-y-4">
+          <div className="flex justify-center">
+            <div className="relative w-24 h-24 rounded-full overflow-hidden border-4 border-primary/10">
+              <Image
+                src="/aivs logo.JPG"
+                alt="AIVS Logo"
+                fill
+                className="object-cover"
+                priority
+              />
+            </div>
+          </div>
           <CardTitle className="text-2xl font-bold text-center">Login</CardTitle>
           <CardDescription className="text-center">Enter your credentials to access the dashboard</CardDescription>
         </CardHeader>
@@ -117,6 +129,10 @@ export default function LoginPage() {
           </form>
         </CardContent>
       </Card>
+      
+      <footer className="mt-8 text-center text-sm text-muted-foreground">
+        Built by AIVS, 2025
+      </footer>
     </div>
   )
 }
