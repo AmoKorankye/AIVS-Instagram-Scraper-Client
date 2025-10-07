@@ -166,6 +166,11 @@ export default function DashboardPage() {
             </TabsContent>
           </Tabs>
         </div>
+        
+        {/* Footer */}
+        <footer className="mt-12 text-center text-sm text-muted-foreground">
+          Built by AIVS, 2025
+        </footer>
       </div>
     </div>
   )
