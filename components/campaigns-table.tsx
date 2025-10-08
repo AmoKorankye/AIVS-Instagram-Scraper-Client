@@ -10,7 +10,7 @@ interface Campaign {
   campaign_id: string
   campaign_date: string
   total_assigned: number
-  status: "pending" | "success" | "failed"
+  status: "success" | "failed"
   created_at: string
 }
 
@@ -46,8 +46,7 @@ export function CampaignsTable() {
   const getStatusDot = (status: Campaign["status"]) => {
     const statusConfig = {
       success: "bg-green-500",
-      failed: "bg-red-500",
-      pending: "bg-gray-400"
+      failed: "bg-red-500"
     }
     
     return (
@@ -145,15 +144,11 @@ export function CampaignsTable() {
           <div className="flex items-center gap-6 text-xs text-muted-foreground pt-2">
             <div className="flex items-center gap-2">
               <div className="h-2 w-2 rounded-full bg-green-500" />
-              <span>Success</span>
+              <span>Success - Distribution completed to all VA tables</span>
             </div>
             <div className="flex items-center gap-2">
               <div className="h-2 w-2 rounded-full bg-red-500" />
-              <span>Failed</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="h-2 w-2 rounded-full bg-gray-400" />
-              <span>Pending</span>
+              <span>Failed - Distribution encountered errors</span>
             </div>
           </div>
         </div>
