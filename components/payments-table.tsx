@@ -17,12 +17,16 @@ export function PaymentsTable({
   accounts = [], 
   totalFiltered = 0, 
   isLoading = false,
-  onCampaignComplete 
+  onCampaignComplete,
+  canAssignToVAs = false,
+  statusMessage = ""
 }: {
   accounts?: Account[]
   totalFiltered?: number
   isLoading?: boolean
   onCampaignComplete?: () => void
+  canAssignToVAs?: boolean
+  statusMessage?: string
 }) {
   const [currentPage, setCurrentPage] = useState(0)
   const [isAssigning, setIsAssigning] = useState(false)
@@ -46,10 +50,22 @@ export function PaymentsTable({
   }
 
   const handleAssignToVAs = async () => {
-    if (totalFiltered === 0) {
+    // Check using the exact status message for guaranteed sync
+    const READY_MESSAGE = "You can proceed with the VA assignment."
+    
+    // 🔍 DEBUG LOGGING
+    console.log('=== ASSIGN TO VAs CLICKED ===')
+    console.log('canAssignToVAs prop:', canAssignToVAs)
+    console.log('statusMessage prop:', statusMessage)
+    console.log('Expected message:', READY_MESSAGE)
+    console.log('Message matches:', statusMessage === READY_MESSAGE)
+    console.log('Will proceed:', statusMessage === READY_MESSAGE && canAssignToVAs)
+    console.log('============================')
+    
+    if (statusMessage !== READY_MESSAGE || !canAssignToVAs) {
       toast({
-        title: "No accounts to assign",
-        description: "Please scrape some accounts first.",
+        title: "Cannot assign to VAs",
+        description: statusMessage || "Not enough unused usernames available. Please scrape more accounts.",
         variant: "destructive",
       })
       return
@@ -180,6 +196,14 @@ export function PaymentsTable({
     </div>
   )
 
+  // 🔍 DEBUG LOGGING for button state
+  const buttonDisabled = isAssigning || !canAssignToVAs
+  console.log('=== BUTTON RENDER STATE ===')
+  console.log('isAssigning:', isAssigning)
+  console.log('canAssignToVAs:', canAssignToVAs)
+  console.log('Button disabled:', buttonDisabled)
+  console.log('==========================')
+
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between">
@@ -191,7 +215,7 @@ export function PaymentsTable({
         </div>
         <Button 
           onClick={handleAssignToVAs} 
-          disabled={isAssigning || totalFiltered === 0}
+          disabled={buttonDisabled}
           size="lg"
         >
           {isAssigning ? (

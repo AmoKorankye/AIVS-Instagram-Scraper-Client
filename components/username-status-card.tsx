@@ -1,24 +1,30 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { supabase } from "@/lib/supabase"
 import { AlertCircle, CheckCircle2, RefreshCw } from "lucide-react"
 import { Skeleton } from "@/components/ui/skeleton"
 
-export function UsernameStatusCard() {
+interface UsernameStatusCardProps {
+  onStatusChange?: (isReady: boolean, unusedCount: number, statusMessage: string) => void
+}
+
+export function UsernameStatusCard({ onStatusChange }: UsernameStatusCardProps) {
   const [unusedCount, setUnusedCount] = useState<number | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
   const dailyTarget = Number(process.env.NEXT_PUBLIC_DAILY_SELECTION_TARGET) || 14400
 
-  useEffect(() => {
-    fetchUnusedCount()
-  }, [])
+  // Status messages - single source of truth
+  const STATUS_MESSAGES = {
+    READY: "You can proceed with the VA assignment.",
+    NOT_READY: "Scrape additional followers before proceeding."
+  }
 
-  const fetchUnusedCount = async () => {
+  const fetchUnusedCount = useCallback(async () => {
     setIsLoading(true)
     setError(null)
     
@@ -30,20 +36,50 @@ export function UsernameStatusCard() {
       
       if (error) throw error
       
-      setUnusedCount(count ?? 0)
+      const currentCount = count ?? 0
+      setUnusedCount(currentCount)
+      
+      // Determine readiness and corresponding message
+      const ready = currentCount >= dailyTarget
+      const message = ready ? STATUS_MESSAGES.READY : STATUS_MESSAGES.NOT_READY
+      
+      // 🔍 DEBUG LOGGING
+      console.log('=== USERNAME STATUS DEBUG ===')
+      console.log('Database count (unused usernames):', currentCount)
+      console.log('Daily target threshold:', dailyTarget)
+      console.log('Is ready (count >= target):', ready)
+      console.log('Status message:', message)
+      console.log('Notifying parent with canAssignToVAs:', ready)
+      console.log('============================')
+      
+      // Notify parent with both readiness state and status message
+      onStatusChange?.(ready, currentCount, message)
     } catch (err) {
       console.error('Error fetching unused usernames count:', err)
       setError('Failed to load username status')
       setUnusedCount(0)
+      onStatusChange?.(false, 0, STATUS_MESSAGES.NOT_READY)
     } finally {
       setIsLoading(false)
     }
-  }
+  }, [dailyTarget, onStatusChange])
 
+  useEffect(() => {
+    fetchUnusedCount()
+  }, [fetchUnusedCount])
+
+  useEffect(() => {
+    // Notify parent immediately when component mounts or count changes
+    if (unusedCount !== null) {
+      const ready = unusedCount >= dailyTarget
+      const message = ready ? STATUS_MESSAGES.READY : STATUS_MESSAGES.NOT_READY
+      onStatusChange?.(ready, unusedCount, message)
+    }
+  }, [unusedCount, dailyTarget, onStatusChange])
+
+  // Derive state from the same logic - ensuring consistency
   const isReady = unusedCount !== null && unusedCount >= dailyTarget
-  const statusMessage = isReady
-    ? "You can proceed with the VA assignment."
-    : "Scrape additional followers before proceeding."
+  const statusMessage = isReady ? STATUS_MESSAGES.READY : STATUS_MESSAGES.NOT_READY
 
   return (
     <Card className="w-full">

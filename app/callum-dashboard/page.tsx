@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useState, useCallback } from "react"
 import { useRouter } from "next/navigation"
 import Image from "next/image"
 import { DependenciesCard } from "@/components/dependencies-card"
@@ -34,6 +34,21 @@ export default function DashboardPage() {
   const [isScrapingLoading, setIsScrapingLoading] = useState(false)
   const [showLogoutDialog, setShowLogoutDialog] = useState(false)
   const [refreshKey, setRefreshKey] = useState(0)
+  const [canAssignToVAs, setCanAssignToVAs] = useState(false)
+  const [statusMessage, setStatusMessage] = useState("")
+
+    const handleUsernameStatusChange = useCallback((isReady: boolean, unusedCount: number, message: string) => {
+    // 🔍 DEBUG LOGGING
+    console.log('=== DASHBOARD STATUS UPDATE ===')
+    console.log('Received isReady:', isReady)
+    console.log('Received unusedCount:', unusedCount)
+    console.log('Received message:', message)
+    console.log('Setting canAssignToVAs to:', isReady)
+    console.log('==============================')
+    
+    setCanAssignToVAs(isReady)
+    setStatusMessage(message)
+  }, [])
 
   const handleScrapingStart = () => {
     setIsScrapingLoading(true)
@@ -137,7 +152,10 @@ export default function DashboardPage() {
         
         {/* Username Status Card */}
         <div className="mb-6">
-          <UsernameStatusCard key={`username-status-${refreshKey}`} />
+          <UsernameStatusCard 
+            key={`username-status-${refreshKey}`}
+            onStatusChange={handleUsernameStatusChange}
+          />
         </div>
         
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -159,6 +177,8 @@ export default function DashboardPage() {
                 totalFiltered={totalFiltered}
                 isLoading={isScrapingLoading}
                 onCampaignComplete={handleCampaignComplete}
+                canAssignToVAs={canAssignToVAs}
+                statusMessage={statusMessage}
               />
             </TabsContent>
             <TabsContent value="campaigns">
