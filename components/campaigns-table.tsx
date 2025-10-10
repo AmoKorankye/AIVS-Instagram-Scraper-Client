@@ -10,7 +10,7 @@ interface Campaign {
   campaign_id: string
   campaign_date: string
   total_assigned: number
-  status: "success" | "failed"
+  status: boolean  // Changed from "success" | "failed" to boolean
   created_at: string
 }
 
@@ -43,16 +43,15 @@ export function CampaignsTable() {
     }
   }
 
-  const getStatusDot = (status: Campaign["status"]) => {
-    const statusConfig = {
-      success: "bg-green-500",
-      failed: "bg-red-500"
-    }
+  const getStatusDot = (status: boolean) => {
+    // true = success (green), false = failed (red)
+    const statusColor = status ? "bg-green-500" : "bg-red-500"
+    const statusText = status ? "success" : "failed"
     
     return (
       <div className="flex items-center gap-2">
-        <div className={`h-2 w-2 rounded-full ${statusConfig[status]}`} />
-        <span className="capitalize">{status}</span>
+        <div className={`h-2 w-2 rounded-full ${statusColor}`} />
+        <span className="capitalize">{statusText}</span>
       </div>
     )
   }
