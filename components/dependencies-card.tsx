@@ -59,6 +59,7 @@ interface DependenciesCardProps {
 export function DependenciesCard({ onScrapingComplete, onScrapingStart, onError }: DependenciesCardProps) {
   const [inputValue, setInputValue] = useState("")
   const [accounts, setAccounts] = useState<InstagramAccount[]>([])
+  const [totalScrapeCount, setTotalScrapeCount] = useState<number>(150)
   const [isScrapingLoading, setIsScrapingLoading] = useState(false)
   const [isLoadingProfiles, setIsLoadingProfiles] = useState(false)
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
@@ -217,6 +218,15 @@ export function DependenciesCard({ onScrapingComplete, onScrapingStart, onError 
       return
     }
 
+    if (totalScrapeCount <= 0) {
+      toast({
+        title: "Invalid scrape count",
+        description: "Please enter a valid number of accounts to scrape (greater than 0).",
+        variant: "destructive",
+      })
+      return
+    }
+
     setIsScrapingLoading(true)
     setProgress(0)
     setProgressStep('scraping')
@@ -236,7 +246,8 @@ export function DependenciesCard({ onScrapingComplete, onScrapingStart, onError 
         },
         body: JSON.stringify({
           accounts: usernames,
-          targetGender: 'male' // Default to male as requested
+          targetGender: 'male', // Default to male as requested
+          totalScrapeCount: totalScrapeCount // Send user-defined total count
         })
       })
 
@@ -397,6 +408,34 @@ export function DependenciesCard({ onScrapingComplete, onScrapingStart, onError 
               <p className="text-sm text-muted-foreground text-center py-4">No Instagram accounts added yet</p>
             )}
           </div>
+        </div>
+
+        {/* Total Scrape Count Input */}
+        <div className="space-y-2">
+          <label htmlFor="totalScrapeCount" className="text-sm font-medium">
+            Total Accounts to Scrape
+          </label>
+          <Input
+            id="totalScrapeCount"
+            type="number"
+            min="1"
+            value={totalScrapeCount}
+            onChange={(e) => {
+              const value = parseInt(e.target.value)
+              if (value > 0 || e.target.value === '') {
+          setTotalScrapeCount(value || 0)
+              }
+            }}
+            placeholder="Enter total number of accounts"
+            className="w-full"
+          />
+          <p className="text-xs text-muted-foreground">
+            {accounts.length === 1
+              ? `The account will scrape ~${totalScrapeCount} followers`
+              : accounts.length > 1
+              ? `Each of the ${accounts.length} accounts will scrape ~${Math.floor(totalScrapeCount / accounts.length)} followers`
+              : 'Add accounts above to see distribution'}
+          </p>
         </div>
 
         {/* Progress Indicator */}
