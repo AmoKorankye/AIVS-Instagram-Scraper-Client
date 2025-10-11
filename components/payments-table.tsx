@@ -101,6 +101,9 @@ export function PaymentsTable({
     try {
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001'
 
+      // Get profiles_per_table: use custom value if provided, otherwise use default from env
+      const profilesPerTableToUse = profilesPerTable !== undefined ? profilesPerTable : defaultProfilesPerTable
+
       // STEP 1: Create Campaign & Daily Selection (0% → 33%)
       setProgress(10)
       const selectionResponse = await fetch(`${apiUrl}/api/daily-selection`, {
@@ -108,7 +111,9 @@ export function PaymentsTable({
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({})
+        body: JSON.stringify({
+          profiles_per_table: profilesPerTableToUse
+        })
       })
 
       const selectionResult = await selectionResponse.json()
@@ -132,18 +137,15 @@ export function PaymentsTable({
       setProgressStep('distributing')
       setProgress(40)
 
-      // Build request body with optional profiles_per_table
-      const distributeBody: { profiles_per_table?: number } = {}
-      if (profilesPerTable !== undefined) {
-        distributeBody.profiles_per_table = profilesPerTable
-      }
-
+      // Always send profiles_per_table to backend (already determined above)
       const distributeResponse = await fetch(`${apiUrl}/api/distribute/${campaignId}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(distributeBody)
+        body: JSON.stringify({
+          profiles_per_table: profilesPerTableToUse
+        })
       })
 
       const distributeResult = await distributeResponse.json()
@@ -185,13 +187,10 @@ export function PaymentsTable({
       setProgress(100)
       setProgressStep('complete')
 
-      // Get the actual profiles_per_table used (from distribute response or default)
-      const actualProfilesPerTable = distributeResult.assigned_per_table || profilesPerTable || defaultProfilesPerTable
-
-      // Success!
+      // Success! Use the value we sent to the backend
       toast({
         title: "Campaign completed",
-        description: `Assigned ${actualProfilesPerTable} accounts per VA successfully.`,
+        description: `Assigned ${profilesPerTableToUse} accounts per VA successfully.`,
       })
 
       // Trigger UI refresh
