@@ -19,6 +19,8 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog"
 import { useAuth } from "@/contexts/auth-context"
+import { AssignmentProgressProvider } from "@/contexts/assignment-progress-context"
+import { GlobalAssignmentProgress } from "@/components/global-assignment-progress"
 
 interface ScrapedAccount {
   id: string
@@ -107,91 +109,94 @@ export default function DashboardPage() {
     )
   }
   return (
-    <div className="min-h-screen bg-background p-6">
-      <div className="max-w-7xl mx-auto">
-        {/* Header with logo and logout */}
-        <div className="flex items-center justify-between mb-8">
-          <div className="flex items-center gap-4">
-            <div className="w-12 h-12 rounded-full overflow-hidden bg-gray-100">
-              <Image 
-                src="/aivs logo.JPG" 
-                alt="AIVS Logo" 
-                width={48} 
-                height={48}
-                className="w-full h-full object-cover"
-              />
+    <AssignmentProgressProvider>
+      <GlobalAssignmentProgress />
+      <div className="min-h-screen bg-background p-6">
+        <div className="max-w-7xl mx-auto">
+          {/* Header with logo and logout */}
+          <div className="flex items-center justify-between mb-8">
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 rounded-full overflow-hidden bg-gray-100">
+                <Image 
+                  src="/aivs logo.JPG" 
+                  alt="AIVS Logo" 
+                  width={48} 
+                  height={48}
+                  className="w-full h-full object-cover"
+                />
+              </div>
             </div>
+            <Dialog open={showLogoutDialog} onOpenChange={setShowLogoutDialog}>
+              <DialogTrigger asChild>
+                <Button variant="outline" onClick={handleLogout}>
+                  Logout
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Confirm Logout</DialogTitle>
+                  <DialogDescription>
+                    Are you sure you want to logout? You will be redirected to the login page.
+                  </DialogDescription>
+                </DialogHeader>
+                <DialogFooter>
+                  <Button
+                    variant="outline"
+                    onClick={() => setShowLogoutDialog(false)}
+                  >
+                    Cancel
+                  </Button>
+                  <Button onClick={confirmLogout}>
+                    Yes, Logout
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
           </div>
-          <Dialog open={showLogoutDialog} onOpenChange={setShowLogoutDialog}>
-            <DialogTrigger asChild>
-              <Button variant="outline" onClick={handleLogout}>
-                Logout
-              </Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Confirm Logout</DialogTitle>
-                <DialogDescription>
-                  Are you sure you want to logout? You will be redirected to the login page.
-                </DialogDescription>
-              </DialogHeader>
-              <DialogFooter>
-                <Button
-                  variant="outline"
-                  onClick={() => setShowLogoutDialog(false)}
-                >
-                  Cancel
-                </Button>
-                <Button onClick={confirmLogout}>
-                  Yes, Logout
-                </Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
-        </div>
-        
-        {/* Username Status Card */}
-        <div className="mb-6">
-          <UsernameStatusCard 
-            key={`username-status-${refreshKey}`}
-            onStatusChange={handleUsernameStatusChange}
-          />
-        </div>
-        
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <DependenciesCard 
-            onScrapingStart={handleScrapingStart}
-            onScrapingComplete={handleScrapingComplete}
-            onError={handleScrapingError}
-          />
           
-          {/* Tabs for Scraped Accounts and Campaigns */}
-          <Tabs defaultValue="payments" className="w-full">
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="payments">Scraped Accounts</TabsTrigger>
-              <TabsTrigger value="campaigns">Campaigns</TabsTrigger>
-            </TabsList>
-            <TabsContent value="payments">
-              <PaymentsTable 
-                accounts={scrapedAccounts}
-                totalFiltered={totalFiltered}
-                isLoading={isScrapingLoading}
-                onCampaignComplete={handleCampaignComplete}
-                canAssignToVAs={canAssignToVAs}
-                statusMessage={statusMessage}
-              />
-            </TabsContent>
-            <TabsContent value="campaigns">
-              <CampaignsTable key={`campaigns-${refreshKey}`} />
-            </TabsContent>
-          </Tabs>
+          {/* Username Status Card */}
+          <div className="mb-6">
+            <UsernameStatusCard 
+              key={`username-status-${refreshKey}`}
+              onStatusChange={handleUsernameStatusChange}
+            />
+          </div>
+          
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <DependenciesCard 
+              onScrapingStart={handleScrapingStart}
+              onScrapingComplete={handleScrapingComplete}
+              onError={handleScrapingError}
+            />
+            
+            {/* Tabs for Scraped Accounts and Campaigns */}
+            <Tabs defaultValue="payments" className="w-full">
+              <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="payments">Scraped Accounts</TabsTrigger>
+                <TabsTrigger value="campaigns">Campaigns</TabsTrigger>
+              </TabsList>
+              <TabsContent value="payments">
+                <PaymentsTable 
+                  accounts={scrapedAccounts}
+                  totalFiltered={totalFiltered}
+                  isLoading={isScrapingLoading}
+                  onCampaignComplete={handleCampaignComplete}
+                  canAssignToVAs={canAssignToVAs}
+                  statusMessage={statusMessage}
+                />
+              </TabsContent>
+              <TabsContent value="campaigns">
+                <CampaignsTable key={`campaigns-${refreshKey}`} />
+              </TabsContent>
+            </Tabs>
+          </div>
+          
+          {/* Footer */}
+          <footer className="mt-12 text-center text-sm text-muted-foreground">
+            Built by AIVS, 2025
+          </footer>
         </div>
-        
-        {/* Footer */}
-        <footer className="mt-12 text-center text-sm text-muted-foreground">
-          Built by AIVS, 2025
-        </footer>
       </div>
-    </div>
+    </AssignmentProgressProvider>
   )
 }

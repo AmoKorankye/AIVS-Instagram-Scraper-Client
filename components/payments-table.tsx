@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Progress } from "@/components/ui/progress"
 import { useToast } from "@/hooks/use-toast"
+import { useAssignmentProgress } from "@/contexts/assignment-progress-context"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -46,12 +47,21 @@ export function PaymentsTable({
   statusMessage?: string
 }) {
   const [currentPage, setCurrentPage] = useState(0)
-  const [isAssigning, setIsAssigning] = useState(false)
-  const [progress, setProgress] = useState(0)
-  const [progressStep, setProgressStep] = useState<'idle' | 'creating' | 'distributing' | 'syncing' | 'complete'>('idle')
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [customProfilesPerTable, setCustomProfilesPerTable] = useState("")
   const { toast } = useToast()
+  
+  // Use global assignment progress context instead of local state
+  const { 
+    isAssigning, 
+    progress, 
+    progressStep, 
+    startAssignment, 
+    updateProgress, 
+    completeAssignment, 
+    failAssignment 
+  } = useAssignmentProgress()
+  
   const itemsPerPage = 10
   const totalAccounts = accounts.length
 
@@ -94,9 +104,8 @@ export function PaymentsTable({
       return
     }
 
-    setIsAssigning(true)
-    setProgress(0)
-    setProgressStep('creating')
+    // Start assignment using global context
+    startAssignment()
 
     try {
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001'
@@ -105,7 +114,7 @@ export function PaymentsTable({
       const profilesPerTableToUse = profilesPerTable !== undefined ? profilesPerTable : defaultProfilesPerTable
 
       // STEP 1: Create Campaign & Daily Selection (0% → 33%)
-      setProgress(10)
+      updateProgress(10, 'creating')
       const selectionResponse = await fetch(`${apiUrl}/api/daily-selection`, {
         method: 'POST',
         headers: {
@@ -124,18 +133,16 @@ export function PaymentsTable({
           description: selectionResult.error || 'Could not create campaign',
           variant: "destructive",
         })
-        setProgressStep('idle')
-        setProgress(0)
+        failAssignment()
         return
       }
 
       const campaignId = selectionResult.campaign_id
       const totalSelected = selectionResult.total_selected
-      setProgress(33)
+      updateProgress(33, 'creating')
 
       // STEP 2: Distribute to VA Tables (33% → 66%)
-      setProgressStep('distributing')
-      setProgress(40)
+      updateProgress(40, 'distributing')
 
       // Always send profiles_per_table to backend (already determined above)
       const distributeResponse = await fetch(`${apiUrl}/api/distribute/${campaignId}`, {
@@ -156,16 +163,14 @@ export function PaymentsTable({
           description: distributeResult.error || 'Could not distribute profiles',
           variant: "destructive",
         })
-        setProgressStep('idle')
-        setProgress(0)
+        failAssignment()
         return
       }
 
-      setProgress(66)
+      updateProgress(66, 'distributing')
 
       // STEP 3: Sync to Airtable (66% → 100%)
-      setProgressStep('syncing')
-      setProgress(75)
+      updateProgress(75, 'syncing')
 
       const syncResponse = await fetch(`${apiUrl}/api/airtable-sync/${campaignId}`, {
         method: 'POST'
@@ -179,13 +184,12 @@ export function PaymentsTable({
           description: syncResult.error || 'Could not sync to Airtable',
           variant: "destructive",
         })
-        setProgressStep('idle')
-        setProgress(0)
+        failAssignment()
         return
       }
 
-      setProgress(100)
-      setProgressStep('complete')
+      // Complete the assignment with the profiles per table value
+      completeAssignment(profilesPerTableToUse)
 
       // Success! Use the value we sent to the backend
       toast({
@@ -196,12 +200,6 @@ export function PaymentsTable({
       // Trigger UI refresh
       onCampaignComplete?.()
 
-      // Reset progress after 2 seconds
-      setTimeout(() => {
-        setProgressStep('idle')
-        setProgress(0)
-      }, 2000)
-
     } catch (error) {
       console.error('Campaign workflow error:', error)
       toast({
@@ -209,10 +207,7 @@ export function PaymentsTable({
         description: 'Failed to complete campaign workflow. Make sure the server is running.',
         variant: "destructive",
       })
-      setProgressStep('idle')
-      setProgress(0)
-    } finally {
-      setIsAssigning(false)
+      failAssignment()
     }
   }
 
