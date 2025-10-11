@@ -16,7 +16,10 @@ export function UsernameStatusCard({ onStatusChange }: UsernameStatusCardProps) 
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  const dailyTarget = Number(process.env.NEXT_PUBLIC_DAILY_SELECTION_TARGET) || 14400
+  // Calculate daily target: NUM_VA_TABLES * PROFILES_PER_TABLE
+  const numVATables = Number(process.env.NEXT_PUBLIC_NUM_VA_TABLES) || 80
+  const profilesPerTable = Number(process.env.NEXT_PUBLIC_PROFILES_PER_TABLE) || 180
+  const dailyTarget = numVATables * profilesPerTable
 
   // Status messages - single source of truth
   const STATUS_MESSAGES = {

@@ -6,6 +6,23 @@ import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Progress } from "@/components/ui/progress"
 import { useToast } from "@/hooks/use-toast"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { MoreVertical } from "lucide-react"
 
 interface Account {
   id: string
@@ -32,9 +49,14 @@ export function PaymentsTable({
   const [isAssigning, setIsAssigning] = useState(false)
   const [progress, setProgress] = useState(0)
   const [progressStep, setProgressStep] = useState<'idle' | 'creating' | 'distributing' | 'syncing' | 'complete'>('idle')
+  const [isDialogOpen, setIsDialogOpen] = useState(false)
+  const [customProfilesPerTable, setCustomProfilesPerTable] = useState("")
   const { toast } = useToast()
   const itemsPerPage = 10
   const totalAccounts = accounts.length
+
+  // Get default profiles per table from env
+  const defaultProfilesPerTable = Number(process.env.NEXT_PUBLIC_PROFILES_PER_TABLE) || 180
 
   const startIndex = currentPage * itemsPerPage
   const endIndex = Math.min(startIndex + itemsPerPage, totalAccounts)
@@ -49,7 +71,7 @@ export function PaymentsTable({
     setCurrentPage((prev) => Math.min(totalPages - 1, prev + 1))
   }
 
-  const handleAssignToVAs = async () => {
+  const handleAssignToVAs = async (profilesPerTable?: number) => {
     // Check using the exact status message for guaranteed sync
     const READY_MESSAGE = "You can proceed with the VA assignment."
     
@@ -60,6 +82,7 @@ export function PaymentsTable({
     console.log('Expected message:', READY_MESSAGE)
     console.log('Message matches:', statusMessage === READY_MESSAGE)
     console.log('Will proceed:', statusMessage === READY_MESSAGE && canAssignToVAs)
+    console.log('Profiles per table:', profilesPerTable || 'default from env')
     console.log('============================')
     
     if (statusMessage !== READY_MESSAGE || !canAssignToVAs) {
@@ -109,8 +132,18 @@ export function PaymentsTable({
       setProgressStep('distributing')
       setProgress(40)
 
+      // Build request body with optional profiles_per_table
+      const distributeBody: { profiles_per_table?: number } = {}
+      if (profilesPerTable !== undefined) {
+        distributeBody.profiles_per_table = profilesPerTable
+      }
+
       const distributeResponse = await fetch(`${apiUrl}/api/distribute/${campaignId}`, {
-        method: 'POST'
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(distributeBody)
       })
 
       const distributeResult = await distributeResponse.json()
@@ -152,10 +185,13 @@ export function PaymentsTable({
       setProgress(100)
       setProgressStep('complete')
 
+      // Get the actual profiles_per_table used (from distribute response or default)
+      const actualProfilesPerTable = distributeResult.assigned_per_table || profilesPerTable || defaultProfilesPerTable
+
       // Success!
       toast({
         title: "Campaign completed",
-        description: `Successfully assigned ${totalSelected} profiles to ${syncResult.tables_synced} VA tables in Airtable.`,
+        description: `Assigned ${actualProfilesPerTable} accounts per VA successfully.`,
       })
 
       // Trigger UI refresh
@@ -181,6 +217,34 @@ export function PaymentsTable({
     }
   }
 
+  // Handler for default assignment (uses env default)
+  const handleDefaultAssignment = () => {
+    handleAssignToVAs(undefined) // undefined means use backend's env default
+  }
+
+  // Handler for opening custom assignment dialog
+  const handleOpenCustomDialog = () => {
+    setCustomProfilesPerTable(defaultProfilesPerTable.toString())
+    setIsDialogOpen(true)
+  }
+
+  // Handler for confirming custom assignment
+  const handleConfirmCustomAssignment = () => {
+    const value = parseInt(customProfilesPerTable)
+    
+    if (isNaN(value) || value <= 0) {
+      toast({
+        title: "Invalid input",
+        description: "Please enter a valid number of profiles per VA.",
+        variant: "destructive",
+      })
+      return
+    }
+
+    setIsDialogOpen(false)
+    handleAssignToVAs(value)
+  }
+
   const SkeletonRow = ({ index }: { index: number }) => (
     <div className="flex items-center gap-4 px-4 py-3">
       <div className="w-12 text-sm font-medium text-muted-foreground">{startIndex + index + 1}</div>
@@ -196,13 +260,8 @@ export function PaymentsTable({
     </div>
   )
 
-  // 🔍 DEBUG LOGGING for button state
-  const buttonDisabled = isAssigning || !canAssignToVAs
-  console.log('=== BUTTON RENDER STATE ===')
-  console.log('isAssigning:', isAssigning)
-  console.log('canAssignToVAs:', canAssignToVAs)
-  console.log('Button disabled:', buttonDisabled)
-  console.log('==========================')
+  // Determine if assignment actions should be disabled (but keep menu always clickable)
+  const assignmentDisabled = isAssigning || !canAssignToVAs
 
   return (
     <Card>
@@ -213,18 +272,41 @@ export function PaymentsTable({
             {totalFiltered > 0 ? `${totalFiltered} filtered accounts found` : "No accounts to display"}
           </p>
         </div>
-        <Button 
-          onClick={handleAssignToVAs} 
-          disabled={buttonDisabled}
-          size="lg"
-        >
-          {isAssigning ? (
-            progressStep === 'creating' ? 'Creating Campaign...' :
-            progressStep === 'distributing' ? 'Distributing...' :
-            progressStep === 'syncing' ? 'Syncing to Airtable...' :
-            'Complete!'
-          ) : 'Assign to VAs'}
-        </Button>
+        
+        {/* Dropdown Menu for VA Assignment - Always visible and clickable */}
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8"
+              aria-label="More actions"
+            >
+              <MoreVertical className="h-4 w-4" />
+              <span className="sr-only">More actions</span>
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem
+              onClick={handleDefaultAssignment}
+              disabled={assignmentDisabled}
+            >
+              {isAssigning 
+                ? (progressStep === 'creating' ? 'Creating Campaign...' :
+                   progressStep === 'distributing' ? 'Distributing...' :
+                   progressStep === 'syncing' ? 'Syncing to Airtable...' :
+                   'Complete!')
+                : `Assign ${defaultProfilesPerTable} accounts per VA`
+              }
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={handleOpenCustomDialog}
+              disabled={assignmentDisabled}
+            >
+              Edit VA Assignment
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </CardHeader>
       <CardContent>
         {/* Progress Indicator */}
@@ -293,6 +375,42 @@ export function PaymentsTable({
           </div>
         )}
       </CardContent>
+
+      {/* Custom Assignment Dialog */}
+      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit VA Assignment</DialogTitle>
+            <DialogDescription>
+              Enter the number of profiles each VA should receive.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="profiles-per-table" className="text-right">
+                Profiles per VA
+              </Label>
+              <Input
+                id="profiles-per-table"
+                type="number"
+                min="1"
+                value={customProfilesPerTable}
+                onChange={(e) => setCustomProfilesPerTable(e.target.value)}
+                className="col-span-3"
+                placeholder={defaultProfilesPerTable.toString()}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleConfirmCustomAssignment}>
+              Confirm
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </Card>
   )
 }
