@@ -85,16 +85,6 @@ export function PaymentsTable({
     // Check using the exact status message for guaranteed sync
     const READY_MESSAGE = "You can proceed with the VA assignment."
     
-    // 🔍 DEBUG LOGGING
-    console.log('=== ASSIGN TO VAs CLICKED ===')
-    console.log('canAssignToVAs prop:', canAssignToVAs)
-    console.log('statusMessage prop:', statusMessage)
-    console.log('Expected message:', READY_MESSAGE)
-    console.log('Message matches:', statusMessage === READY_MESSAGE)
-    console.log('Will proceed:', statusMessage === READY_MESSAGE && canAssignToVAs)
-    console.log('Profiles per table:', profilesPerTable || 'default from env')
-    console.log('============================')
-    
     if (statusMessage !== READY_MESSAGE || !canAssignToVAs) {
       toast({
         title: "Cannot assign to VAs",
@@ -138,7 +128,7 @@ export function PaymentsTable({
       }
 
       const campaignId = selectionResult.campaign_id
-      const totalSelected = selectionResult.total_selected
+      const _totalSelected = selectionResult.total_selected
       updateProgress(33, 'creating')
 
       // STEP 2: Distribute to VA Tables (33% → 66%)

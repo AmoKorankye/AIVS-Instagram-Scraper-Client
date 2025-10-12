@@ -318,7 +318,7 @@ export function DependenciesCard({ onScrapingComplete, onScrapingStart, onError 
         setProgress(0)
       }, 2000)
 
-    } catch (error) {
+    } catch {
       const errorMsg = 'Failed to connect to API. Make sure the server is running on port 5001.'
       onError?.(errorMsg)
       toast({

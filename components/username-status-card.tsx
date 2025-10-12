@@ -7,6 +7,12 @@ import { supabase } from "@/lib/supabase"
 import { AlertCircle, CheckCircle2, RefreshCw } from "lucide-react"
 import { Skeleton } from "@/components/ui/skeleton"
 
+// Status messages - single source of truth
+const STATUS_MESSAGES = {
+  READY: "You can proceed with the VA assignment.",
+  NOT_READY: "Scrape additional followers before proceeding."
+}
+
 interface UsernameStatusCardProps {
   onStatusChange?: (isReady: boolean, unusedCount: number, statusMessage: string) => void
 }
@@ -20,12 +26,6 @@ export function UsernameStatusCard({ onStatusChange }: UsernameStatusCardProps) 
   const numVATables = Number(process.env.NEXT_PUBLIC_NUM_VA_TABLES) || 80
   const profilesPerTable = Number(process.env.NEXT_PUBLIC_PROFILES_PER_TABLE) || 180
   const dailyTarget = numVATables * profilesPerTable
-
-  // Status messages - single source of truth
-  const STATUS_MESSAGES = {
-    READY: "You can proceed with the VA assignment.",
-    NOT_READY: "Scrape additional followers before proceeding."
-  }
 
   const fetchUnusedCount = useCallback(async () => {
     setIsLoading(true)
@@ -45,15 +45,6 @@ export function UsernameStatusCard({ onStatusChange }: UsernameStatusCardProps) 
       // Determine readiness and corresponding message
       const ready = currentCount >= dailyTarget
       const message = ready ? STATUS_MESSAGES.READY : STATUS_MESSAGES.NOT_READY
-      
-      // 🔍 DEBUG LOGGING
-      console.log('=== USERNAME STATUS DEBUG ===')
-      console.log('Database count (unused usernames):', currentCount)
-      console.log('Daily target threshold:', dailyTarget)
-      console.log('Is ready (count >= target):', ready)
-      console.log('Status message:', message)
-      console.log('Notifying parent with canAssignToVAs:', ready)
-      console.log('============================')
       
       // Notify parent with both readiness state and status message
       onStatusChange?.(ready, currentCount, message)

@@ -5,7 +5,7 @@ import { Progress } from "@/components/ui/progress"
 import { Card } from "@/components/ui/card"
 
 export function GlobalAssignmentProgress() {
-  const { isAssigning, progress, progressStep, profilesPerTable } = useAssignmentProgress()
+  const { progress, progressStep, profilesPerTable } = useAssignmentProgress()
 
   // Don't render anything if not assigning
   if (progressStep === 'idle') {

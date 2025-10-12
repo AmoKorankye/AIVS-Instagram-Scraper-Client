@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import {
   Dialog,
   DialogContent,
@@ -35,20 +35,13 @@ export function EditSourceProfilesDialog({
   const [profiles, setProfiles] = useState<SourceProfile[]>([])
   const [inputValue, setInputValue] = useState("")
   const [isLoading, setIsLoading] = useState(false)
-  const [isSaving, setIsSaving] = useState(false)
   const [showPasswordPrompt, setShowPasswordPrompt] = useState(false)
   const [password, setPassword] = useState("")
   const [isClearing, setIsClearing] = useState(false)
   const { toast } = useToast()
 
   // Fetch profiles when dialog opens
-  useEffect(() => {
-    if (open) {
-      fetchProfiles()
-    }
-  }, [open])
-
-  const fetchProfiles = async () => {
+  const fetchProfiles = useCallback(async () => {
     setIsLoading(true)
     try {
       const { data, error } = await supabase
@@ -69,7 +62,13 @@ export function EditSourceProfilesDialog({
     } finally {
       setIsLoading(false)
     }
-  }
+  }, [toast])
+
+  useEffect(() => {
+    if (open) {
+      fetchProfiles()
+    }
+  }, [open, fetchProfiles])
 
   const extractUsername = (input: string): string | null => {
     const trimmedInput = input.trim()

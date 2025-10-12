@@ -40,14 +40,6 @@ export default function DashboardPage() {
   const [statusMessage, setStatusMessage] = useState("")
 
     const handleUsernameStatusChange = useCallback((isReady: boolean, unusedCount: number, message: string) => {
-    // 🔍 DEBUG LOGGING
-    console.log('=== DASHBOARD STATUS UPDATE ===')
-    console.log('Received isReady:', isReady)
-    console.log('Received unusedCount:', unusedCount)
-    console.log('Received message:', message)
-    console.log('Setting canAssignToVAs to:', isReady)
-    console.log('==============================')
-    
     setCanAssignToVAs(isReady)
     setStatusMessage(message)
   }, [])
@@ -64,7 +56,7 @@ export default function DashboardPage() {
     setIsScrapingLoading(false)
   }
 
-  const handleScrapingError = (error: string) => {
+  const handleScrapingError = (_error: string) => {
     setIsScrapingLoading(false)
     setScrapedAccounts([])
     setTotalFiltered(0)
