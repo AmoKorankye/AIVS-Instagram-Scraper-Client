@@ -2,13 +2,22 @@
   "name": "my-v0-project",
   "version": "0.1.0",
   "private": true,
+  "main": "electron/main.js",
   "scripts": {
     "dev": "next dev",
     "build": "next lint && next build",
     "start": "next start",
     "lint": "next lint",
     "lint:fix": "next lint --fix",
-    "type-check": "tsc --noEmit"
+    "type-check": "tsc --noEmit",
+    "electron": "electron .",
+    "electron-dev": "NODE_ENV=development electron .",
+    "dev:all": "concurrently \"npm run dev\" \"wait-on http://localhost:3000 && npm run electron-dev\" --names \"next,electron\" --prefix-colors \"cyan,magenta\"",
+    "build:next": "next build",
+    "build:flask": "cd ../server && pyinstaller --onefile --name flask-backend app.py",
+    "build:electron": "electron-builder",
+    "package": "npm run build:next && npm run build:flask && npm run build:electron",
+    "postinstall": "electron-builder install-app-deps"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",
@@ -69,6 +78,8 @@
     "@types/react": "^18",
     "@types/react-dom": "^18",
     "autoprefixer": "^10.4.21",
+    "electron": "^38.2.2",
+    "electron-builder": "^26.0.12",
     "eslint": "^8.57.1",
     "eslint-config-next": "^14.2.25",
     "postcss": "^8.5.6",

@@ -76,7 +76,7 @@ export default function LoginPage() {
               />
             </div>
           </div>
-          <CardTitle className="text-2xl font-bold text-center">Login</CardTitle>
+          <CardTitle className="text-2xl font-bold text-center">Welcome Back, Callum</CardTitle>
           <CardDescription className="text-center">Enter your credentials to access the dashboard</CardDescription>
         </CardHeader>
         <CardContent>
