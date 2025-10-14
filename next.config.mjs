@@ -1,7 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   output: 'standalone',
-  // Disable image optimization for Electron packaging
+  // Image optimization is disabled (standalone output)
   images: {
     unoptimized: true,
   },
