@@ -82,17 +82,9 @@ export function PaymentsTable({
   }
 
   const handleAssignToVAs = async (profilesPerTable?: number) => {
-    // Check using the exact status message for guaranteed sync
-    const READY_MESSAGE = "You can proceed with the VA assignment."
-    
-    if (statusMessage !== READY_MESSAGE || !canAssignToVAs) {
-      toast({
-        title: "Cannot assign to VAs",
-        description: statusMessage || "Not enough unused usernames available. Please scrape more accounts.",
-        variant: "destructive",
-      })
-      return
-    }
+    // NOTE: Intentionally bypassing status/permission checks so the action
+    // always proceeds when the user clicks the menu item. Any feedback
+    // is still handled by the toast messages returned from the workflow.
 
     // Start assignment using global context
     startAssignment()
@@ -201,9 +193,9 @@ export function PaymentsTable({
     }
   }
 
-  // Handler for default assignment (uses env default)
-  const handleDefaultAssignment = () => {
-    handleAssignToVAs(undefined) // undefined means use backend's env default
+  // Handler for fixed assignment: sets profiles_per_table to exactly 180
+  const handleFixed180Assignment = () => {
+    handleAssignToVAs(180)
   }
 
   // Handler for opening custom assignment dialog
@@ -244,8 +236,8 @@ export function PaymentsTable({
     </div>
   )
 
-  // Determine if assignment actions should be disabled (but keep menu always clickable)
-  const assignmentDisabled = isAssigning || !canAssignToVAs
+  // Assignment actions are intentionally not disabled so that the
+  // dropdown menu buttons are always clickable.
 
   return (
     <Card>
@@ -271,23 +263,11 @@ export function PaymentsTable({
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            <DropdownMenuItem
-              onClick={handleDefaultAssignment}
-              disabled={assignmentDisabled}
-            >
-              {isAssigning 
-                ? (progressStep === 'creating' ? 'Creating Campaign...' :
-                   progressStep === 'distributing' ? 'Distributing...' :
-                   progressStep === 'syncing' ? 'Syncing to Airtable...' :
-                   'Complete!')
-                : `Assign ${defaultProfilesPerTable} accounts per VA`
-              }
+            <DropdownMenuItem onClick={handleFixed180Assignment}>
+              Assign 180 accounts per VA
             </DropdownMenuItem>
-            <DropdownMenuItem
-              onClick={handleOpenCustomDialog}
-              disabled={assignmentDisabled}
-            >
-              Edit VA Assignment
+            <DropdownMenuItem onClick={handleOpenCustomDialog}>
+              Custom VA Assignment...
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
