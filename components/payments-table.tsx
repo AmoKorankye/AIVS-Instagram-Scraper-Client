@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import { supabase } from "@/lib/supabase"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
@@ -49,6 +50,8 @@ export function PaymentsTable({
   const [currentPage, setCurrentPage] = useState(0)
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [customProfilesPerTable, setCustomProfilesPerTable] = useState("")
+  const [isFixed180ConfirmOpen, setIsFixed180ConfirmOpen] = useState(false)
+  const [isCheckingAvailability, setIsCheckingAvailability] = useState(false)
   const { toast } = useToast()
   
   // Use global assignment progress context instead of local state
@@ -193,9 +196,52 @@ export function PaymentsTable({
     }
   }
 
-  // Handler for fixed assignment: sets profiles_per_table to exactly 180
+  // Handler for fixed assignment: open a confirmation dialog first
   const handleFixed180Assignment = () => {
-    handleAssignToVAs(180)
+    setIsFixed180ConfirmOpen(true)
+  }
+
+  // Confirm and perform the 180 assignment after checking availability
+  const confirmFixed180Assignment = async () => {
+    setIsCheckingAvailability(true)
+
+    try {
+      // Query Supabase for the count of unused usernames (used = false)
+      const { count, error } = await supabase
+        .from('global_usernames')
+        .select('*', { count: 'exact', head: true })
+        .eq('used', false)
+
+      if (error) throw error
+
+      const available = count ?? 0
+
+      // Required minimum for assigning 180 across 80 VA tables
+      const required = 14400
+
+      if (available < required) {
+        toast({
+          title: "Not enough profiles",
+          description: "Please scrape more profiles before attempting to distribute 14,400 profiles.",
+          variant: "destructive",
+        })
+        setIsFixed180ConfirmOpen(false)
+        return
+      }
+
+      // Enough available — close confirm and proceed
+      setIsFixed180ConfirmOpen(false)
+      handleAssignToVAs(180)
+    } catch (err) {
+      console.error('Error checking available profiles:', err)
+      toast({
+        title: "Availability check failed",
+        description: "Could not verify available profiles. Try again or check the server.",
+        variant: "destructive",
+      })
+    } finally {
+      setIsCheckingAvailability(false)
+    }
   }
 
   // Handler for opening custom assignment dialog
@@ -371,6 +417,26 @@ export function PaymentsTable({
             </Button>
             <Button onClick={handleConfirmCustomAssignment}>
               Confirm
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Confirm dialog for fixed 180 assignment */}
+      <Dialog open={isFixed180ConfirmOpen} onOpenChange={setIsFixed180ConfirmOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Assign 180 accounts per VA</DialogTitle>
+            <DialogDescription>
+              This will attempt to distribute 180 profiles to each VA (total required: 14,400). Are you sure you want to proceed?
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsFixed180ConfirmOpen(false)} disabled={isCheckingAvailability}>
+              Cancel
+            </Button>
+            <Button onClick={confirmFixed180Assignment} disabled={isCheckingAvailability}>
+              {isCheckingAvailability ? 'Checking...' : 'Confirm'}
             </Button>
           </DialogFooter>
         </DialogContent>
